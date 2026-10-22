@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WORD QUEST | 영어 단어 정복 게임</title>
+<style>
+  :root { --navy:#17153b; --purple:#7357ff; --pink:#ff6eb4; --mint:#6df0c2; --cream:#fff8e8; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#fff; background:radial-gradient(circle at 15% 15%,#44358c 0,transparent 32%),radial-gradient(circle at 85% 80%,#54245e 0,transparent 28%),var(--navy); padding:24px 14px 40px; }
+  .wrap { width:min(760px,100%); margin:0 auto; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:4px 0 22px; }
+  .logo { font-weight:1000; letter-spacing:1px; font-size:clamp(1.1rem,4vw,1.6rem); }
+  .logo span { color:var(--mint); }
+  .pill { border:1px solid #ffffff35; background:#ffffff12; border-radius:999px; padding:8px 12px; font-size:.85rem; }
+  .hero { text-align:center; padding:22px 10px 26px; }
+  .hero .emoji { font-size:3rem; filter:drop-shadow(0 6px 0 #0002); }
+  h1 { font-size:clamp(2rem,8vw,3.7rem); line-height:1; margin:12px 0; letter-spacing:-1.5px; }
+  h1 span { color:var(--mint); }
+  .subtitle { color:#d7d4ff; margin:0; }
+  .panel { background:#ffffff12; border:1px solid #ffffff25; border-radius:24px; padding:clamp(18px,5vw,30px); box-shadow:0 20px 60px #0002; backdrop-filter:blur(8px); }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+  .stat { background:#0d0c2b66; border-radius:15px; padding:12px 8px; text-align:center; }
+  .stat small { display:block; color:#c9c5f4; font-size:.78rem; margin-bottom:3px; }
+  .stat strong { font-size:1.35rem; }
+  .progress { height:8px; background:#ffffff20; border-radius:99px; overflow:hidden; margin:0 0 22px; }
+  .progress div { height:100%; width:0%; background:linear-gradient(90deg,var(--mint),#a9ffde); transition:width .25s; }
+  .question-label { color:var(--mint); font-size:.8rem; font-weight:800; letter-spacing:1.8px; text-align:center; }
+  .word { text-align:center; font-size:clamp(2.2rem,10vw,3.5rem); font-weight:950; margin:8px 0 5px; letter-spacing:-1px; overflow-wrap:anywhere; }
+  .hint { text-align:center; color:#d7d4ff; margin:0 0 24px; }
+  .choices { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  button { font:inherit; cursor:pointer; border:0; transition:transform .12s,filter .12s; }
+  button:focus-visible { outline:3px solid var(--mint); outline-offset:3px; }
+  button:active { transform:scale(.98); }
+  .choice { min-height:64px; border-radius:16px; padding:14px 12px; background:var(--cream); color:#252044; font-weight:800; box-shadow:0 5px 0 #d7cfe8; }
+  .choice:hover:not(:disabled) { filter:brightness(1.06); transform:translateY(-2px); }
+  .choice:disabled { cursor:default; opacity:1; }
+  .choice.correct { background:var(--mint); box-shadow:0 5px 0 #2ba982; }
+  .choice.wrong { background:#ffb5c9; box-shadow:0 5px 0 #d86c91; }
+  .feedback { min-height:48px; text-align:center; font-weight:750; padding:15px 4px 0; color:#fff; }
+  .next-row { display:flex; justify-content:center; margin-top:8px; }
+  .primary { border-radius:14px; padding:13px 22px; font-weight:900; background:linear-gradient(135deg,var(--purple),var(--pink)); color:white; box-shadow:0 5px 0 #37237b; }
+  .primary:hover { filter:brightness(1.08); }
+  .start-screen,.result-screen { text-align:center; padding:10px 0 4px; }
+  .big-emoji { font-size:4rem; margin:5px 0 10px; }
+  .start-screen h2,.result-screen h2 { font-size:1.8rem; margin:8px 0; }
+  .start-screen p,.result-screen p { color:#d7d4ff; line-height:1.65; }
+  .settings { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:20px 0; }
+  .mode { border:1px solid #ffffff45; background:#ffffff10; color:white; border-radius:999px; padding:9px 13px; }
+  .mode.active { background:var(--mint); border-color:var(--mint); color:#17153b; font-weight:900; }
+  .hidden { display:none !important; }
+  .result-score { font-size:3rem; font-weight:1000; color:var(--mint); }
+  footer { text-align:center; color:#aaa5d9; font-size:.8rem; margin:22px 0 0; }
+  @media(max-width:480px) { .choices { grid-template-columns:1fr; } .choice { min-height:55px; } .stats { gap:7px; } .stat strong { font-size:1.15rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🎮 WORD <span>QUEST</span></div>
+    <div class="pill">✨ Learn · Play · Level Up</div>
+  </header>
+  <section class="hero">
+    <div class="emoji">🚀</div>
+    <h1>WORD <span>QUEST</span></h1>
+    <p class="subtitle">영어 단어를 정복하고 최고 점수에 도전하자!</p>
+  </section>
+
+  <main class="panel">
+    <section id="startScreen" class="start-screen">
+      <div class="big-emoji">🧩</div>
+      <h2>준비됐어, 단어 탐험가?</h2>
+      <p>영어 단어를 보고 알맞은 한국어 뜻을 골라 봐.<br>정답을 맞히면 점수를 얻을 수 있어!</p>
+      <div class="settings" aria-label="게임 난이도 선택">
+        <button class="mode active" data-mode="easy">🌱 쉬움</button>
+        <button class="mode" data-mode="normal">⚡ 보통</button>
+        <button class="mode" data-mode="hard">🔥 도전</button>
+      </div>
+      <p id="modeDescription">기초 영어 단어로 시작해 보자.</p>
+      <button id="startBtn" class="primary">게임 시작하기 ▶</button>
+    </section>
+
+    <section id="gameScreen" class="hidden">
+      <div class="stats">
+        <div class="stat"><small>⭐ SCORE</small><strong id="score">0</strong></div>
+        <div class="stat"><small>🗺️ QUESTION</small><strong id="questionCount">1 / 10</strong></div>
+        <div class="stat"><small>❤️ STREAK</small><strong id="streak">0</strong></div>
+      </div>
+      <div class="progress"><div id="progressBar"></div></div>
+      <div class="question-label">WHAT DOES THIS WORD MEAN?</div>
+      <div id="word" class="word">opportunity</div>
+      <p class="hint">아래 보기에서 가장 알맞은 뜻을 선택해!</p>
+      <div id="choices" class="choices"></div>
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+      <div class="next-row"><button id="nextBtn" class="primary hidden">다음 문제 →</button></div>
+    </section>
+
+    <section id="resultScreen" class="result-screen hidden">
+      <div class="big-emoji" id="resultEmoji">🏆</div>
+      <h2 id="resultTitle">퀘스트 완료!</h2>
+      <p>모든 문제를 풀었어. 오늘의 결과를 확인해 봐!</p>
+      <div class="result-score" id="finalScore">0점</div>
+      <p id="resultMessage"></p>
+      <button id="restartBtn" class="primary">다시 도전하기 ↻</button>
+    </section>
+  </main>
+  <footer>WORD QUEST · 작은 도전이 실력을 만든다 ✨</footer>
+</div>
+<script>
+const vocabulary = {
+  easy: [
+    ["opportunity","기회"],["ignore","무시하다"],["rude","무례한"],["respond","응답하다"],
+    ["witness","목격자; 목격하다"],["awkward","어색한"],["interrupt","말을 끊다"],
+    ["chew","씹다"],["injure","다치게 하다"],["arrogant","거만한"],["overcome","극복하다"],
+    ["challenge","도전"],["etiquette","예절"],["react","반응하다"],["stare","빤히 쳐다보다"],
+    ["risk","위험; 위험을 감수하다"],["report","보고하다"],["leave","떠나다"],
+    ["decision","결정"],["change","변화; 바꾸다"]
+  ],
+  normal: [
+    ["setback","차질; 좌절"],["confront","맞서다"],["resent","분개하다"],["pushy","지나치게 밀어붙이는"],
+    ["put up with","참다; 견디다"],["hang out with","~와 어울리다"],["make a change","변화를 주다"],
+    ["take a risk","위험을 감수하다"],["face a challenge","도전에 맞서다"],["pass out","기절하다"],
+    ["get into","~에 빠지다; 시작하다"],["pay off","성과를 거두다"],["keep up with","따라가다"],
+    ["acquaintance","아는 사람"],["extroverted","외향적인"],["introverted","내향적인"],
+    ["sarcastic","빈정대는"],["standoffish","쌀쌀맞은"],["gregarious","사교적인"],["insecure","자신감이 부족한"]
+  ],
+  hard: [
+    ["conceited","자만하는"],["unapproachable","다가가기 어려운"],["bubbly","명랑하고 활기찬"],
+    ["prospective","장래의; 가능성이 있는"],["participate","참여하다"],["assumption","추측; 가정"],
+    ["sympathize","공감하다"],["overcome an obstacle","장애물을 극복하다"],
+    ["have a setback","차질을 겪다"],["make a decision","결정을 내리다"],
+    ["in the mood","~할 기분인"],["swing by","잠깐 들르다"],["try out","시험 삼아 해 보다"],
+    ["be up for","~할 의향이 있다"],["connected","연결된; 인맥이 있는"],
+    ["former","이전의"],["acquaintance","아는 사람"],["etiquette","예절"],
+    ["witness","목격하다"],["put up with","참다; 견디다"]
+  ]
+};
+const $ = id => document.getElementById(id);
+let mode = "easy", questions = [], index = 0, score = 0, streak = 0, bestStreak = 0, locked = false;
+const modeDescriptions = {
+  easy:"기초 영어 단어로 시작해 보자.",
+  normal:"수업에서 배운 표현에 도전해 봐.",
+  hard:"조금 더 어려운 단어와 표현을 정복해 봐!"
+};
+document.querySelectorAll(".mode").forEach(btn => btn.addEventListener("click", () => {
+  mode = btn.dataset.mode;
+  document.querySelectorAll(".mode").forEach(b => b.classList.toggle("active", b === btn));
+  $("modeDescription").textContent = modeDescriptions[mode];
+}));
+$("startBtn").addEventListener("click", startGame);
+$("nextBtn").addEventListener("click", nextQuestion);
+$("restartBtn").addEventListener("click", () => {
+  $("resultScreen").classList.add("hidden");
+  $("startScreen").classList.remove("hidden");
+});
+function shuffle(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+function startGame() {
+  questions = shuffle(vocabulary[mode]).slice(0, 10);
+  index = 0; score = 0; streak = 0; bestStreak = 0;
+  $("startScreen").classList.add("hidden");
+  $("resultScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+  showQuestion();
+}
+function showQuestion() {
+  locked = false;
+  const [word] = questions[index];
+  $("word").textContent = word;
+  $("score").textContent = score;
+  $("streak").textContent = streak;
+  $("questionCount").textContent = `${index + 1} / ${questions.length}`;
+  $("progressBar").style.width = `${index / questions.length * 100}%`;
+  $("feedback").textContent = "";
+  $("nextBtn").classList.add("hidden");
+  const correct = questions[index][1];
+  const otherMeanings = shuffle(vocabulary[mode].filter(item => item[0] !== word).map(item => item[1]));
+  const options = shuffle([correct, ...otherMeanings.slice(0, 3)]);
+  $("choices").replaceChildren();
+  options.forEach((meaning, i) => {
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.textContent = `${["A","B","C","D"][i]}.  ${meaning}`;
+    btn.addEventListener("click", () => chooseAnswer(btn, meaning, correct));
+    $("choices").appendChild(btn);
+  });
+}
+function chooseAnswer(btn, meaning, correct) {
+  if (locked) return;
+  locked = true;
+  document.querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    if (b.textContent.slice(4).trim() === correct) b.classList.add("correct");
+  });
+  if (meaning === correct) {
+    score += 10; streak++; bestStreak = Math.max(bestStreak, streak);
+    $("feedback").textContent = "🎉 정답이야! +10점";
+  } else {
+    streak = 0;
+    btn.classList.add("wrong");
+    $("feedback").textContent = `💡 아쉽다! 정답은 “${correct}”야.`;
+  }
+  $("score").textContent = score;
+  $("streak").textContent = streak;
+  $("progressBar").style.width = `${(index + 1) / questions.length * 100}%`;
+  $("nextBtn").textContent = index === questions.length - 1 ? "결과 확인하기 🏆" : "다음 문제 →";
+  $("nextBtn").classList.remove("hidden");
+}
+function nextQuestion() {
+  index++;
+  if (index >= questions.length) return showResults();
+  showQuestion();
+}
+function showResults() {
+  $("gameScreen").classList.add("hidden");
+  $("resultScreen").classList.remove("hidden");
+  $("finalScore").textContent = `${score}점`;
+  $("resultEmoji").textContent = score === 100 ? "👑" : score >= 70 ? "🏆" : score >= 40 ? "🚀" : "🌱";
+  $("resultTitle").textContent = score === 100 ? "완벽한 퀘스트!" : score >= 70 ? "대단해, 탐험가!" : "도전 완료!";
+  $("resultMessage").textContent = `10문제 중 ${score / 10}문제 정답! 최고 연속 정답은 ${bestStreak}문제야. ${score >= 70 ? "실력이 쑥쑥 늘고 있어!" : "틀린 단어를 다시 확인하고 한 번 더 도전해 보자!"}`;
+}
+</script>
+</body>
+</html>
